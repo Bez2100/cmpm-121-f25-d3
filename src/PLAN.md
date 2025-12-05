@@ -47,11 +47,11 @@
 
 #### 7. Crafting
 
-- [ ] If player holds a token and clicks a cell:
-- [ ] If cell has same value → combine into value * 2
-- [ ] Update cell + inventory state
-- [ ] Re-render updated token
-- [ ] Detect when player reaches target value (e.g., 8 or 16)
+- [x] If player holds a token and clicks a cell:
+- [x] If cell has same value → combine into value * 2
+- [x] Update cell + inventory state
+- [x] Re-render updated token
+- [x] Detect when player reaches target value (e.g., 8 or 16)
 
 #### 8. Polish / Testing
 
