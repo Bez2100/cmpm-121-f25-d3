@@ -26,7 +26,7 @@ document.body.append(statusPanelDiv);
 /* -------------------------
    Constants / tuning
    -------------------------*/
-const CLASSROOM_LATLNG = L.latLng(36.997936938057016, -122.05703507501151);
+const ORIGIN = L.latLng(0, 0); // Null Island
 const GAMEPLAY_ZOOM_LEVEL = 19;
 const TILE_DEGREES = 1e-4; // cell side in degrees (≈ size of a house)
 const INTERACTION_RADIUS_CELLS = 3; // can interact within 3 cells
@@ -70,17 +70,15 @@ const markers = new Map<string, L.Marker>();
    Initialize map
    -------------------------*/
 const map = L.map(mapDiv, {
-  center: CLASSROOM_LATLNG,
+  center: ORIGIN,
   zoom: GAMEPLAY_ZOOM_LEVEL,
-  minZoom: GAMEPLAY_ZOOM_LEVEL,
-  maxZoom: GAMEPLAY_ZOOM_LEVEL,
-  zoomControl: false,
-  dragging: false, // prevent panning so player believes grid covers world
-  scrollWheelZoom: false,
-  doubleClickZoom: false,
-  boxZoom: false,
-  keyboard: false,
-  touchZoom: false,
+  zoomControl: true,
+  dragging: true, // doesn't prevent panning so player believes grid covers world
+  scrollWheelZoom: true,
+  doubleClickZoom: true,
+  boxZoom: true,
+  keyboard: true,
+  touchZoom: true,
 });
 
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -90,7 +88,7 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(map);
 
 // Player marker
-const playerMarker = L.marker(CLASSROOM_LATLNG, { interactive: false }).addTo(
+const playerMarker = L.marker(ORIGIN, { interactive: false }).addTo(
   map,
 );
 playerMarker.bindTooltip("You (fixed)", {
@@ -124,14 +122,14 @@ function _cellCoordsForLatLng(
   lat: number,
   lng: number,
 ): { i: number; j: number } {
-  const origin = CLASSROOM_LATLNG;
+  const origin = ORIGIN;
   const i = Math.floor((lat - origin.lat) / TILE_DEGREES);
   const j = Math.floor((lng - origin.lng) / TILE_DEGREES);
   return { i, j };
 }
 
 function boundsForCell(i: number, j: number): L.LatLngBounds {
-  const origin = CLASSROOM_LATLNG;
+  const origin = ORIGIN;
   const sw = L.latLng(
     origin.lat + i * TILE_DEGREES,
     origin.lng + j * TILE_DEGREES,

@@ -59,3 +59,88 @@
 - [x] Ensure deterministic behavior on reload
 - [x] Adjust UI so all information is clearly visible
 - [x] Confirm entire grid is visible without scrolling
+
+D3.b: Globe-Spanning Gameplay — Implementation Plan
+
+This document lists the required steps to extend the D3.a world into a
+globe-spanning, scrollable environment with player movement and dynamic cell loading.
+
+## Step 1 — Convert coordinate system to Null Island
+
+- [x] Replace CLASSROOM_LATLNG with (0, 0)
+- [x] Base all cell calculations on this global origin
+- [x] Enable full map dragging/scrolling (remove movement restrictions)
+
+---
+
+## Step 2 — Add player state & player marker
+
+- [ ] Add `playerLatLng` variable storing current player position
+- [ ] Render player marker at that position
+- [ ] Center the map on the player at startup
+
+---
+
+## Step 3 — Add movement buttons (N/S/E/W)
+
+- [ ] Add UI buttons for North / South / East / West
+- [ ] Each button moves player by exactly one TILE_DEGREES step
+- [ ] Map recenters on new player position after movement
+
+---
+
+## Step 4 — Grid rendering tied to map movement
+
+- [ ] Add `map.on("moveend")` listener
+- [ ] Compute which cells are visible inside the viewport bounding box
+- [ ] Render only visible cells
+- [ ] Remove old `renderAllAround()` global draw
+
+---
+
+## Step 5 — Memoryless cells beyond view
+
+- [ ] Cells despawn when leaving visible screen
+- [ ] Spawning uses deterministic luck unless overridden
+- [ ] Returning to a previously seen cell respawns it fresh if not overridden
+
+---
+
+## Step 6 — Update interaction radius centered on player
+
+- [ ] Compute player's cell coordinates (pi, pj)
+- [ ] Allow interactions only if:
+      abs(i - pi) ≤ INTERACTION_RADIUS_CELLS
+      abs(j - pj) ≤ INTERACTION_RADIUS_CELLS
+
+---
+
+## Step 7 — Update click handler to use real player position
+
+- [ ] Modify `handleCellClick` to compare against player cell
+- [ ] Preserve existing pickup / place / crafting behaviors
+- [ ] Validate interaction after coordinate change
+
+---
+
+## Step 8 — Update win condition
+
+- [ ] Confirm win triggers when crafting reaches target
+- [ ] Confirm win triggers when held token reaches target
+
+---
+
+## Step 9 — Remove classroom-specific UX
+
+- [ ] Remove “You (fixed)” tooltip
+- [ ] Remove forced zoom lock (allow zoom)
+- [ ] Remove unused classroom constants
+
+---
+
+## Step 10 — Final consistency & polish
+
+- [ ] Verify rendering performance under scrolling
+- [ ] Ensure no orphaned markers remain
+- [ ] Ensure player movement stays synced with rendering
+- [ ] Ensure infinite grid illusion is intact
