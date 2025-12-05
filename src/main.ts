@@ -31,7 +31,7 @@ let playerLatLng = ORIGIN.clone(); // start at Null Island
 const GAMEPLAY_ZOOM_LEVEL = 19;
 const TILE_DEGREES = 1e-4; // cell side in degrees (≈ size of a house)
 const INTERACTION_RADIUS_CELLS = 3; // can interact within 3 cells
-const RENDER_RADIUS_CELLS = 120; // draw many cells so map looks infinite
+const _RENDER_RADIUS_CELLS = 120; // draw many cells so map looks infinite
 const SPAWN_PROBABILITY = 0.30; // deterministic chance a cell initially has a token
 const TARGET_VALUE = 16; // win when player holds >= this
 
@@ -232,29 +232,35 @@ function renderCell(i: number, j: number) {
 }
 
 /* -------------------------
-   Bulk render cells (so map looks infinite)
+   Bulk render cells based on viewport
    -------------------------*/
-// New render: only cells around player
-function renderCellsAroundPlayer() {
-  const { i: ci, j: cj } = _cellCoordsForLatLng(
-    playerLatLng.lat,
-    playerLatLng.lng,
-  );
+// Render only cells currently visible in the map viewport (on moveend)
+function renderVisibleCells() {
+  const bounds = map.getBounds();
+  const sw = bounds.getSouthWest();
+  const ne = bounds.getNorthEast();
 
-  // Track which keys we render so we can remove old items outside radius
+  // Determine cell indices covering the viewport
+  const c1 = _cellCoordsForLatLng(sw.lat, sw.lng);
+  const c2 = _cellCoordsForLatLng(ne.lat, ne.lng);
+  // Add a 1-cell padding so tokens near the edges don't pop while panning
+  const paddingCells = 1;
+  const iMin = Math.min(c1.i, c2.i) - paddingCells;
+  const iMax = Math.max(c1.i, c2.i) + paddingCells;
+  const jMin = Math.min(c1.j, c2.j) - paddingCells;
+  const jMax = Math.max(c1.j, c2.j) + paddingCells;
+
   const keep = new Set<string>();
 
-  for (let di = -RENDER_RADIUS_CELLS; di <= RENDER_RADIUS_CELLS; di++) {
-    for (let dj = -RENDER_RADIUS_CELLS; dj <= RENDER_RADIUS_CELLS; dj++) {
-      const i = ci + di;
-      const j = cj + dj;
+  for (let i = iMin; i <= iMax; i++) {
+    for (let j = jMin; j <= jMax; j++) {
       const k = keyFor(i, j);
       keep.add(k);
       renderCell(i, j);
     }
   }
 
-  // Remove rectangles/markers that are no longer within the render radius
+  // Remove rectangles/markers that are no longer visible
   for (const k of Array.from(rects.keys())) {
     if (!keep.has(k)) {
       const r = rects.get(k)!;
@@ -271,8 +277,9 @@ function renderCellsAroundPlayer() {
   }
 }
 
-// call it at startup
-renderCellsAroundPlayer();
+// Render initially and whenever the map finishes moving
+renderVisibleCells();
+map.on("moveend", renderVisibleCells);
 
 /* -------------------------
    Interaction / game logic
@@ -444,14 +451,15 @@ function resetWorld() {
   persistHeld();
   updateInventoryUI();
   // re-render everything
-  renderCellsAroundPlayer();
+  renderVisibleCells();
   flashMessage("World reset.");
 }
 
 /* -------------------------
    Startup: render grid + attach map click for convenience
    -------------------------*/
-renderCellsAroundPlayer();
+// initial render already invoked above; ensure visibility once more
+renderVisibleCells();
 map.on("click", () => {
   // clicking empty map area clears messages
   (document.getElementById("msg") as HTMLDivElement).textContent = "";
@@ -462,7 +470,7 @@ map.on("click", (e: L.LeafletMouseEvent) => {
   const me = e as L.LeafletMouseEvent & { originalEvent?: MouseEvent };
   if (me.originalEvent && me.originalEvent.shiftKey) {
     playerLatLng = e.latlng.clone();
-    renderCellsAroundPlayer();
+    renderVisibleCells();
     // center the map on the player so overlay remains meaningful
     try {
       map.panTo(playerLatLng);
@@ -480,7 +488,6 @@ function movePlayerByCells(di: number, dj: number) {
     playerLatLng.lat + di * TILE_DEGREES,
     playerLatLng.lng + dj * TILE_DEGREES,
   );
-  renderCellsAroundPlayer();
   // Pan the map so the viewport recenters on the player's logical position
   try {
     map.panTo(playerLatLng);

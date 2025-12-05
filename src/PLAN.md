@@ -91,10 +91,10 @@ globe-spanning, scrollable environment with player movement and dynamic cell loa
 
 ## Step 4 — Grid rendering tied to map movement
 
-- [ ] Add `map.on("moveend")` listener
-- [ ] Compute which cells are visible inside the viewport bounding box
-- [ ] Render only visible cells
-- [ ] Remove old `renderAllAround()` global draw
+- [x] Add `map.on("moveend")` listener
+- [x] Compute which cells are visible inside the viewport bounding box
+- [x] Render only visible cells
+- [x] Remove old `renderAllAround()` global draw
 
 ---
 
