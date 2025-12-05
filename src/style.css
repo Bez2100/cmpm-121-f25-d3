@@ -1,12 +1,34 @@
-#controlPanel {
-  padding: 1rem;
-}
-
+/* Control and status panels */
+#controlPanel,
 #statusPanel {
   padding: 1rem;
+  font-size: 1.2rem;
+  font-family: sans-serif;
 }
 
+/* Map container */
 #map {
   width: 100%;
   height: 80vh;
+  border: 2px solid #ccc;
+  box-sizing: border-box;
+}
+
+/* Inventory display */
+#inventoryDisplay {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: #f4f4f4;
+  border-radius: 6px;
+  font-size: 1.4rem;
+  display: inline-block;
+}
+
+/* Token text inside grid cells */
+.token-label {
+  font-size: 1.4rem;
+  font-weight: bold;
+  pointer-events: none; /* allow clicks through text layer */
+  user-select: none;
+  text-shadow: 1px 1px 2px white;
 }
