@@ -55,7 +55,7 @@
 
 #### 8. Polish / Testing
 
-- [ ] Verify all coordinate math is consistent
-- [ ] Ensure deterministic behavior on reload
-- [ ] Adjust UI so all information is clearly visible
-- [ ] Confirm entire grid is visible without scrolling
+- [x] Verify all coordinate math is consistent
+- [x] Ensure deterministic behavior on reload
+- [x] Adjust UI so all information is clearly visible
+- [x] Confirm entire grid is visible without scrolling
