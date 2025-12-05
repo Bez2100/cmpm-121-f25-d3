@@ -14,9 +14,9 @@
 
 #### 2. Map Initialization
 
-- [ ] Center map on classroom coordinates (fixed position)
-- [ ] Disable user panning so the player believes map extends infinitely
-- [ ] Add a marker representing player location
+- [x] Center map on classroom coordinates (fixed position)
+- [x] Disable user panning so the player believes map extends infinitely
+- [x] Add a marker representing player location
 
 #### 3. Grid System
 

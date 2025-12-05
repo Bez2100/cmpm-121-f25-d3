@@ -22,4 +22,22 @@ document.body.append(mapDiv);
 
 console.log("luck test:", luck("startup"));
 
-console.log("Leaflet loaded:", leaflet);
+// --- Map Initialization ---
+
+const CLASSROOM = leaflet.latLng(36.997936938057016, -122.05703507501151);
+
+const map = leaflet.map(mapDiv, {
+  center: CLASSROOM,
+  zoom: 19,
+  zoomControl: false,
+  dragging: false, // Prevents moving the map
+  scrollWheelZoom: false,
+});
+
+// Base tiles
+leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19,
+}).addTo(map);
+
+// Player marker
+leaflet.marker(CLASSROOM).addTo(map);
