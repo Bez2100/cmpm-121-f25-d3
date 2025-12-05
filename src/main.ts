@@ -41,3 +41,32 @@ leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 // Player marker
 leaflet.marker(CLASSROOM).addTo(map);
+
+const CELL_SIZE = 0.0001; // 0.0001 degrees ≈ size of a house
+const GRID_RADIUS = 20; // draw 40×40 cells around player
+
+// --- Grid System ---
+
+function cellBounds(i: number, j: number) {
+  const lat1 = CLASSROOM.lat + i * CELL_SIZE;
+  const lng1 = CLASSROOM.lng + j * CELL_SIZE;
+  const lat2 = CLASSROOM.lat + (i + 1) * CELL_SIZE;
+  const lng2 = CLASSROOM.lng + (j + 1) * CELL_SIZE;
+  return leaflet.latLngBounds([[lat1, lng1], [lat2, lng2]]);
+}
+
+const cellLayers = new Map<string, leaflet.Rectangle>();
+
+for (let i = -GRID_RADIUS; i <= GRID_RADIUS; i++) {
+  for (let j = -GRID_RADIUS; j <= GRID_RADIUS; j++) {
+    const key = `${i},${j}`;
+    const rect = leaflet.rectangle(cellBounds(i, j), {
+      color: "#999",
+      weight: 1,
+      fillOpacity: 0.05,
+    });
+
+    rect.addTo(map);
+    cellLayers.set(key, rect);
+  }
+}

@@ -20,10 +20,10 @@
 
 #### 3. Grid System
 
-- [ ] Define fixed cell size (0.0001 degrees)
-- [ ] Write function to compute cell coordinates around the player
-- [ ] Draw visible grid cells on map (use rectangles or canvas overlays)
-- [ ] Ensure grid extends beyond view boundaries (feels infinite)
+- [x] Define fixed cell size (0.0001 degrees)
+- [x] Write function to compute cell coordinates around the player
+- [x] Draw visible grid cells on map (use rectangles or canvas overlays)
+- [x] Ensure grid extends beyond view boundaries (feels infinite)
 
 #### 4. Deterministic Token Generation
 
