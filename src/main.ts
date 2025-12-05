@@ -117,7 +117,7 @@ makeControlUI();
 function updateStatusUI() {
   statusPanelDiv.innerHTML = `Player: <strong>${playerLatLng.lat.toFixed(5)}, ${
     playerLatLng.lng.toFixed(5)
-  }</strong> — Shift+click map to teleport.`;
+  }</strong> — Move with arrow keys / WASD. Shift+click map to teleport.`;
 }
 updateStatusUI();
 
@@ -463,22 +463,63 @@ map.on("click", (e: L.LeafletMouseEvent) => {
   if (me.originalEvent && me.originalEvent.shiftKey) {
     playerLatLng = e.latlng.clone();
     renderCellsAroundPlayer();
+    // center the map on the player so overlay remains meaningful
+    try {
+      map.panTo(playerLatLng);
+    } catch {
+      // ignore
+    }
     updateStatusUI();
     flashMessage("Player moved.");
   }
 });
 
-// Movement helper (kept for future use): move by cell offsets (di,dj)
-function _movePlayerByCells(di: number, dj: number) {
+// Movement helpers: move by cell offsets (di,dj)
+function movePlayerByCells(di: number, dj: number) {
   playerLatLng = L.latLng(
     playerLatLng.lat + di * TILE_DEGREES,
     playerLatLng.lng + dj * TILE_DEGREES,
   );
   renderCellsAroundPlayer();
+  // Pan the map so the viewport recenters on the player's logical position
+  try {
+    map.panTo(playerLatLng);
+  } catch {
+    // ignore if panTo not available in some contexts
+  }
   updateStatusUI();
 }
 
-// Keyboard movement removed — use Shift+click or other UI to move player.
+// Keyboard controls: arrows + WASD
+globalThis.addEventListener("keydown", (ev) => {
+  const key = ev.key;
+  let handled = true;
+  switch (key) {
+    case "ArrowUp":
+    case "w":
+    case "W":
+      movePlayerByCells(1, 0);
+      break;
+    case "ArrowDown":
+    case "s":
+    case "S":
+      movePlayerByCells(-1, 0);
+      break;
+    case "ArrowLeft":
+    case "a":
+    case "A":
+      movePlayerByCells(0, -1);
+      break;
+    case "ArrowRight":
+    case "d":
+    case "D":
+      movePlayerByCells(0, 1);
+      break;
+    default:
+      handled = false;
+  }
+  if (handled) ev.preventDefault();
+});
 
 /* -------------------------
    End of file

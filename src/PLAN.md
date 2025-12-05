@@ -83,9 +83,9 @@ globe-spanning, scrollable environment with player movement and dynamic cell loa
 
 ## Step 3 — Add movement buttons (N/S/E/W)
 
-- [ ] Add UI buttons for North / South / East / West
-- [ ] Each button moves player by exactly one TILE_DEGREES step
-- [ ] Map recenters on new player position after movement
+- [x] Add UI buttons for North / South / East / West
+- [x] Each button moves player by exactly one TILE_DEGREES step
+- [x] Map recenters on new player position after movement
 
 ---
 
