@@ -27,10 +27,10 @@
 
 #### 4. Deterministic Token Generation
 
-- [ ] Use luck("cell-x-y") to generate a value for each cell
-- [ ] Decide token spawn rules (e.g., 30% chance to have 1-value token)
-- [ ] Render token content visibly on each cell (text or graphic)
-- [ ] Ensure token value is identical across page loads
+- [x] Use luck("cell-x-y") to generate a value for each cell
+- [x] Decide token spawn rules (e.g., 30% chance to have 1-value token)
+- [x] Render token content visibly on each cell (text or graphic)
+- [x] Ensure token value is identical across page loads
 
 #### 5. Interaction Constraints
 

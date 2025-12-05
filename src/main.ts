@@ -70,3 +70,47 @@ for (let i = -GRID_RADIUS; i <= GRID_RADIUS; i++) {
     cellLayers.set(key, rect);
   }
 }
+// --- Token Generation ---
+
+interface CellState {
+  value: number | null;
+}
+
+const world = new Map<string, CellState>();
+
+function getCellState(i: number, j: number): CellState {
+  const key = `${i},${j}`;
+  if (world.has(key)) return world.get(key)!;
+
+  const r = luck(`cell-${i}-${j}`);
+
+  let value = null;
+  if (r < 0.3) value = 1; // 30% chance, fixed forever
+
+  const state = { value };
+  world.set(key, state);
+  return state;
+}
+function renderToken(i: number, j: number) {
+  const key = `${i},${j}`;
+  const rect = cellLayers.get(key)!;
+
+  const state = getCellState(i, j);
+
+  const value = state.value;
+  const emoji = value ? (value === 1 ? "🍏" : "💎") : "";
+
+  rect.bindTooltip(emoji ? `Token: ${value}` : "Empty", {
+    permanent: true,
+    className: "token-label",
+    direction: "center",
+  })
+    .openTooltip();
+}
+
+// render for all cells
+for (let i = -GRID_RADIUS; i <= GRID_RADIUS; i++) {
+  for (let j = -GRID_RADIUS; j <= GRID_RADIUS; j++) {
+    renderToken(i, j);
+  }
+}
