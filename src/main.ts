@@ -27,6 +27,7 @@ document.body.append(statusPanelDiv);
    Constants / tuning
    -------------------------*/
 const ORIGIN = L.latLng(0, 0); // Null Island
+let playerLatLng = ORIGIN.clone(); // start at Null Island
 const GAMEPLAY_ZOOM_LEVEL = 19;
 const TILE_DEGREES = 1e-4; // cell side in degrees (≈ size of a house)
 const INTERACTION_RADIUS_CELLS = 3; // can interact within 3 cells
@@ -87,14 +88,11 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 }).addTo(map);
 
-// Player marker
-const playerMarker = L.marker(ORIGIN, { interactive: false }).addTo(
-  map,
-);
-playerMarker.bindTooltip("You (fixed)", {
-  permanent: true,
-  direction: "bottom",
-}).openTooltip();
+// Player overlay (fixed to viewport center) — visually separates player from map panning
+const playerOverlay = document.createElement("div");
+playerOverlay.id = "playerOverlay";
+playerOverlay.innerHTML = `<div class="player-icon">🧍</div>`;
+mapDiv.append(playerOverlay);
 
 /* -------------------------
    Control / Status UI
@@ -114,6 +112,14 @@ function makeControlUI() {
   updateInventoryUI();
 }
 makeControlUI();
+
+// Status panel: show player coords & brief controls
+function updateStatusUI() {
+  statusPanelDiv.innerHTML = `Player: <strong>${playerLatLng.lat.toFixed(5)}, ${
+    playerLatLng.lng.toFixed(5)
+  }</strong> — Shift+click map to teleport.`;
+}
+updateStatusUI();
 
 /* -------------------------
    Coordinate helpers
@@ -228,21 +234,56 @@ function renderCell(i: number, j: number) {
 /* -------------------------
    Bulk render cells (so map looks infinite)
    -------------------------*/
-function renderAllAround(radius = RENDER_RADIUS_CELLS) {
-  // center cell is i=0, j=0 (classroom origin)
-  for (let i = -radius; i <= radius; i++) {
-    for (let j = -radius; j <= radius; j++) {
+// New render: only cells around player
+function renderCellsAroundPlayer() {
+  const { i: ci, j: cj } = _cellCoordsForLatLng(
+    playerLatLng.lat,
+    playerLatLng.lng,
+  );
+
+  // Track which keys we render so we can remove old items outside radius
+  const keep = new Set<string>();
+
+  for (let di = -RENDER_RADIUS_CELLS; di <= RENDER_RADIUS_CELLS; di++) {
+    for (let dj = -RENDER_RADIUS_CELLS; dj <= RENDER_RADIUS_CELLS; dj++) {
+      const i = ci + di;
+      const j = cj + dj;
+      const k = keyFor(i, j);
+      keep.add(k);
       renderCell(i, j);
     }
   }
+
+  // Remove rectangles/markers that are no longer within the render radius
+  for (const k of Array.from(rects.keys())) {
+    if (!keep.has(k)) {
+      const r = rects.get(k)!;
+      r.remove();
+      rects.delete(k);
+    }
+  }
+  for (const k of Array.from(markers.keys())) {
+    if (!keep.has(k)) {
+      const m = markers.get(k)!;
+      m.remove();
+      markers.delete(k);
+    }
+  }
 }
+
+// call it at startup
+renderCellsAroundPlayer();
 
 /* -------------------------
    Interaction / game logic
    -------------------------*/
 function withinInteraction(i: number, j: number): boolean {
-  return Math.abs(i) <= INTERACTION_RADIUS_CELLS &&
-    Math.abs(j) <= INTERACTION_RADIUS_CELLS;
+  const { i: ci, j: cj } = _cellCoordsForLatLng(
+    playerLatLng.lat,
+    playerLatLng.lng,
+  );
+  return Math.abs(i - ci) <= INTERACTION_RADIUS_CELLS &&
+    Math.abs(j - cj) <= INTERACTION_RADIUS_CELLS;
 }
 
 function handleCellClick(i: number, j: number) {
@@ -403,18 +444,41 @@ function resetWorld() {
   persistHeld();
   updateInventoryUI();
   // re-render everything
-  renderAllAround();
+  renderCellsAroundPlayer();
   flashMessage("World reset.");
 }
 
 /* -------------------------
    Startup: render grid + attach map click for convenience
    -------------------------*/
-renderAllAround();
+renderCellsAroundPlayer();
 map.on("click", () => {
   // clicking empty map area clears messages
   (document.getElementById("msg") as HTMLDivElement).textContent = "";
 });
+
+// shift+click map to move player to clicked world position
+map.on("click", (e: L.LeafletMouseEvent) => {
+  const me = e as L.LeafletMouseEvent & { originalEvent?: MouseEvent };
+  if (me.originalEvent && me.originalEvent.shiftKey) {
+    playerLatLng = e.latlng.clone();
+    renderCellsAroundPlayer();
+    updateStatusUI();
+    flashMessage("Player moved.");
+  }
+});
+
+// Movement helper (kept for future use): move by cell offsets (di,dj)
+function _movePlayerByCells(di: number, dj: number) {
+  playerLatLng = L.latLng(
+    playerLatLng.lat + di * TILE_DEGREES,
+    playerLatLng.lng + dj * TILE_DEGREES,
+  );
+  renderCellsAroundPlayer();
+  updateStatusUI();
+}
+
+// Keyboard movement removed — use Shift+click or other UI to move player.
 
 /* -------------------------
    End of file

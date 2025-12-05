@@ -75,9 +75,9 @@ globe-spanning, scrollable environment with player movement and dynamic cell loa
 
 ## Step 2 — Add player state & player marker
 
-- [ ] Add `playerLatLng` variable storing current player position
-- [ ] Render player marker at that position
-- [ ] Center the map on the player at startup
+- [x] Add `playerLatLng` variable storing current player position
+- [x] Render player marker at that position
+- [x] Center the map on the player at startup
 
 ---
 
