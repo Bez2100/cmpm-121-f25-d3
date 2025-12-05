@@ -34,9 +34,9 @@
 
 #### 5. Interaction Constraints
 
-- [ ] Detect clicks on cells
-- [ ] Allow interaction only if cell is within 3 cells of player
-- [ ] Show feedback for distant cells (e.g., “too far away”)
+- [x] Detect clicks on cells
+- [x] Allow interaction only if cell is within 3 cells of player
+- [x] Show feedback for distant cells (e.g., “too far away”)
 
 #### 6. Inventory
 

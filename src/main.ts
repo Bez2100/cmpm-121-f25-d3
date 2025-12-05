@@ -114,3 +114,23 @@ for (let i = -GRID_RADIUS; i <= GRID_RADIUS; i++) {
     renderToken(i, j);
   }
 }
+function distance(i: number, j: number) {
+  return Math.sqrt(i * i + j * j);
+}
+
+function handleCellClick(i: number, j: number) {
+  if (distance(i, j) > 3) {
+    alert("Too far away!");
+    return;
+  }
+
+  // will hook crafting/pickup later
+}
+
+for (let i = -GRID_RADIUS; i <= GRID_RADIUS; i++) {
+  for (let j = -GRID_RADIUS; j <= GRID_RADIUS; j++) {
+    const key = `${i},${j}`;
+    const rect = cellLayers.get(key)!;
+    rect.on("click", () => handleCellClick(i, j));
+  }
+}
