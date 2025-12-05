@@ -40,10 +40,10 @@
 
 #### 6. Inventory
 
-- [ ] Track whether player is holding exactly one token or none
-- [ ] Update UI to show: “Inventory: empty” or “Holding token value X”
-- [ ] When picking up a token, remove it from the cell (in memory)
-- [ ] Ensure removal persists via in-memory session state (no need for saving)
+- [x] Track whether player is holding exactly one token or none
+- [x] Update UI to show: “Inventory: empty” or “Holding token value X”
+- [x] When picking up a token, remove it from the cell (in memory)
+- [x] Ensure removal persists via in-memory session state (no need for saving)
 
 #### 7. Crafting
 
