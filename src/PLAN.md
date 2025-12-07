@@ -137,3 +137,94 @@ globe-spanning, scrollable environment with player movement and dynamic cell loa
 - [x] Ensure no orphaned markers remain
 - [x] Ensure player movement stays synced with rendering
 - [x] Ensure infinite grid illusion is intact
+
+---
+
+## D3.c: Object Persistence — Implementation Plan
+
+This document lists the required steps to implement persistent cell state
+using the Flyweight and Memento patterns, while maintaining an infinite,
+scrollable world
+
+---
+
+## Step 1 — Flyweight Pattern (Memory Efficiency)
+
+- [x] Do **not** store any data for unmodified cells
+- [x] Use deterministic RNG (`luck()`) to compute default cell values on demand
+- [x] **BUG FIXED**: Removed `cellStates.set(k, token)` from `initialTokenForCell()` — now only modified cells are stored
+- [x] Store only modified cells in a single Map/Record object
+- [x] Key the map using `"i,j"` so lookup is O(1)
+- [x] Ensure that unmodified cells do not create marker/rect objects until rendered
+
+**Result:**\
+Only visible cells or modified cells consume memory.
+
+**Current Status**: Architecture is correct, but implementation leaks memory by storing unmodified cells.
+
+---
+
+## Step 2 — Memento Pattern (Storing Modified Cells)
+
+- [x] Treat each modified cell as a "memento" snapshot of its state
+- [x] Save modifications to the `cellStates` Map:
+  - [x] `number` → the stored token value
+  - [x] `null` → explicitly empty
+- [x] Ensure `initialTokenForCell()` always checks cellStates first (for modified cells)
+- [x] Modified cells in cellStates regenerate identically when re-entering view
+- [x] Avoid storing transient markers/rectangles—only store logical state
+- [x] **FIX APPLIED**: Only write to cellStates when player modifies a cell
+  - [x] `handleCellClick()` — already correct (only writes on action)
+  - [x] `initialTokenForCell()` — FIXED (no longer writes unmodified cells)
+
+**Result:**\
+Modified cells behave as if they "remember" changes forever. Unmodified cells don't pollute the Map.
+
+---
+
+## Step 3 — Rebuild Visible Screen Region Dynamically
+
+- [x] Do **not** maintain a single giant board in memory
+- [x] Every render cycle:
+  - [x] Compute visible cells in viewport bounding box
+  - [x] Render each cell based on cellStates (modified) + deterministic logic (unmodified)
+- [x] Don't try to "move" markers when the map pans
+- [x] Rebuild display from scratch on each moveend event (redraw philosophy)
+
+**Result:**\
+Scrolling and zooming never break the illusion of an infinite world.
+
+---
+
+## Step 4 — Persistent Behavior (Within a Session Only)
+
+- [x] Modified cells persist even if the player scrolls far away
+- [x] Persistence across page reloads is **not** required yet (that's D3.d)
+- [x] `resetWorld()` clears the cellStates map
+- [x] After reset, all cells return to deterministic values
+- [x] **VERIFIED**: Modified cells now persist correctly without storing unmodified cells
+
+**Result:**\
+Cells remember their state during gameplay but not across reloads.
+
+---
+
+## Step 5 — Testing & Validation
+
+- [x] **FIXED**: Removed `cellStates.set(k, token)` from `initialTokenForCell()`
+- [ ] Scroll several screens away and return — verify modified cells restore perfectly
+- [ ] Ensure unmodified cells regenerate deterministically every time
+- [ ] Test edge cases:
+  - [ ] Pick up token, scroll far, scroll back → token should stay gone
+  - [ ] Combine tokens, scroll away, scroll back → combined token should persist
+  - [ ] Empty cell should stay empty if overridden with `null`
+- [ ] Confirm performance remains smooth with large render radius
+- [ ] Verify cellStates Map size stays small (only modified cells)
+
+**Current blockers:**
+
+- Line 174 in `main.ts`: `cellStates.set(k, token)` violates Flyweight pattern
+  - This line stores every unmodified cell, defeating the memory optimization
+  - Solution: Delete this line — unmodified cells don't need storage
+
+---

@@ -163,16 +163,17 @@ function keyFor(i: number, j: number) {
 function initialTokenForCell(i: number, j: number): number | null {
   const k = keyFor(i, j);
 
-  // If we've visited this cell before in this session, return its stored state
+  // If we've visited this cell before (player modified it), return its stored state
   if (cellStates.has(k)) {
     return cellStates.get(k) ?? null;
   }
 
-  // Otherwise, compute deterministically using luck and store it
+  // Otherwise, compute deterministically using luck (don't store unmodified cells)
   const p = luck(`cell-${i}-${j}-spawn`);
-  const token = p < SPAWN_PROBABILITY ? 1 : null;
-  cellStates.set(k, token);
-  return token;
+  if (p < SPAWN_PROBABILITY) {
+    return 1;
+  }
+  return null;
 }
 
 /* -------------------------
