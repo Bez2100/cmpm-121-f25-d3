@@ -9,6 +9,23 @@ import "./_leafletWorkaround.ts";
 import luck from "./_luck.ts";
 
 /* -------------------------
+   D3.d: Movement Controller Facade Interface
+   -------------------------*/
+// This interface abstracts the movement mechanism (buttons vs geolocation)
+// Game code depends on this interface, not on specific implementations
+interface IMovementController {
+  // Start listening for movement input
+  activate(): void;
+
+  // Stop listening for movement input
+  deactivate(): void;
+
+  // Register callback to be called when player moves
+  // Callback receives new player coordinates (lat, lng)
+  onPlayerMove: (callback: (lat: number, lng: number) => void) => void;
+}
+
+/* -------------------------
    UI: build DOM placeholders
    -------------------------*/
 const controlPanelDiv = document.createElement("div");
