@@ -318,13 +318,26 @@ localStorage persistence across page reloads, and a Facade pattern for movement 
 
 ## Step 5 — Add Query String Mode Switching
 
-- [ ] Parse query string to detect `?movement=buttons` or `?movement=geolocation`
-- [ ] Default to `buttons` if not specified
-- [ ] Instantiate appropriate controller based on query string
-- [ ] Initialize only the selected controller
-- [ ] Document in UI which mode is active
+- [x] Parse query string to detect `?movement=buttons` or `?movement=geolocation`
+- [x] Default to `buttons` if not specified
+- [x] Instantiate appropriate controller based on query string
+- [x] Initialize only the selected controller
+- [x] Document in UI which mode is active
 
-**Result**: Player can choose movement mode via URL.
+**Result**: Player can choose movement mode via URL. ✅
+
+**How it works:**
+
+- `getMovementMode()` function (lines 653-663) parses `?movement=` query parameter
+- Returns `"geolocation"` if present and matches, otherwise defaults to `"buttons"`
+- Lines 666-668: Instantiate either `_GeolocationMovementController()` or `ButtonMovementController()` based on mode
+- `updateMovementModeUI()` function (lines 671-680) displays active mode in status panel
+- Game starts with correct controller activated, displaying mode to player
+
+Usage Examples:
+
+- Default button mode: `http://localhost:5173/` or `http://localhost:5173/?movement=buttons`
+- Geolocation mode: `http://localhost:5173/?movement=geolocation`
 
 ---
 

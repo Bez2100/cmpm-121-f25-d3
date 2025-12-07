@@ -649,10 +649,39 @@ map.on("click", (e: L.LeafletMouseEvent) => {
 });
 
 /* -------------------------
-   End of file
+   D3.d: Query String Mode Switching
    -------------------------*/
-// Create and activate the movement controller (currently button-based)
-const movementController = new ButtonMovementController();
+// Determine which movement controller to use based on query string
+function getMovementMode(): "buttons" | "geolocation" {
+  const params = new URLSearchParams(globalThis.location.search);
+  const mode = params.get("movement");
+  if (mode === "geolocation") {
+    return "geolocation";
+  }
+  // Default to buttons if not specified or unrecognized
+  return "buttons";
+}
+
+// Create the appropriate movement controller based on query string
+const movementMode = getMovementMode();
+const movementController: IMovementController = movementMode === "geolocation"
+  ? new _GeolocationMovementController()
+  : new ButtonMovementController();
+
+// Update status UI to show which mode is active
+function updateMovementModeUI() {
+  const modeText = movementMode === "geolocation"
+    ? "GPS/Geolocation"
+    : "Keyboard";
+  const statusEl = document.getElementById("statusPanel");
+  if (statusEl) {
+    const modeSpan = document.createElement("span");
+    modeSpan.style.marginRight = "12px";
+    modeSpan.innerHTML = `<strong>Mode:</strong> ${modeText}`;
+    // Insert at beginning of status panel
+    statusEl.insertAdjacentElement("afterbegin", modeSpan);
+  }
+}
 
 // Register callback to move player when controller fires movement event
 movementController.registerMoveCallback((lat: number, lng: number) => {
@@ -668,6 +697,9 @@ movementController.registerMoveCallback((lat: number, lng: number) => {
 
 // Activate the movement controller (starts listening for input)
 movementController.activate();
+
+// Show which mode is active
+updateMovementModeUI();
 
 /* -------------------------
    End of file
