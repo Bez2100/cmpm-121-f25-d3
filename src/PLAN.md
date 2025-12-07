@@ -160,7 +160,7 @@ scrollable world
 **Result:**\
 Only visible cells or modified cells consume memory.
 
-**Current Status**: Architecture is correct, but implementation leaks memory by storing unmodified cells.
+**Current Status**: Architecture is correct, and Flyweight pattern is fully implemented. Only modified cells consume memory.
 
 ---
 
@@ -212,19 +212,133 @@ Cells remember their state during gameplay but not across reloads.
 ## Step 5 — Testing & Validation
 
 - [x] **FIXED**: Removed `cellStates.set(k, token)` from `initialTokenForCell()`
-- [ ] Scroll several screens away and return — verify modified cells restore perfectly
-- [ ] Ensure unmodified cells regenerate deterministically every time
-- [ ] Test edge cases:
-  - [ ] Pick up token, scroll far, scroll back → token should stay gone
-  - [ ] Combine tokens, scroll away, scroll back → combined token should persist
-  - [ ] Empty cell should stay empty if overridden with `null`
-- [ ] Confirm performance remains smooth with large render radius
-- [ ] Verify cellStates Map size stays small (only modified cells)
+- [x] Scroll several screens away and return — verify modified cells restore perfectly
+- [x] Ensure unmodified cells regenerate deterministically every time
+- [x] Test edge cases:
+  - [x] Pick up token, scroll far, scroll back → token should stay gone
+  - [x] Combine tokens, scroll away, scroll back → combined token should persist
+  - [x] Empty cell should stay empty if overridden with `null`
+- [x] Confirm performance remains smooth with large render radius
+- [x] Verify cellStates Map size stays small (only modified cells)
 
-**Current blockers:**
+**Status**: All tests pass! D3.c is complete. ✅
 
-- Line 174 in `main.ts`: `cellStates.set(k, token)` violates Flyweight pattern
-  - This line stores every unmodified cell, defeating the memory optimization
-  - Solution: Delete this line — unmodified cells don't need storage
+---
+
+## D3.d: Geolocation & Persistence — Implementation Plan
+
+This document lists the required steps to implement geolocation-based movement,
+localStorage persistence across page reloads, and a Facade pattern for movement control.
+
+---
+
+## Step 1 — Verify localStorage Persistence Works
+
+- [x] Test that cellStates and heldToken are already persisting
+- [x] Close the page, reopen it, verify game state is restored
+- [x] Confirm `loadCellStates()` and `loadHeldToken()` are called on startup
+- [x] Document in code that persistence is working as-is
+
+**Result**: Foundation for D3.d persistence is already in place. ✅
+
+**How it works:**
+
+- On startup: `loadCellStates()` and `loadHeldToken()` restore from localStorage (lines 64-65)
+- On every player action: `persistCellStates()` and `persistHeld()` save to localStorage (lines 311-312, 325-326, 338-339, 457-459)
+- Player can close browser and reopen page — all state is preserved
+
+---
+
+## Step 2 — Create Movement Controller Facade Interface
+
+- [ ] Define `IMovementController` interface with methods:
+  - `activate(): void` — start listening for movement input
+  - `deactivate(): void` — stop listening
+  - `onPlayerMove: (callback: (lat: number, lng: number) => void) => void` — register callback
+- [ ] Keep interface in a separate section of code (not mixed with implementations)
+- [ ] Document that this hides button vs geolocation complexity from game code
+
+**Result**: Clear abstraction layer for movement systems.
+
+---
+
+## Step 3 — Refactor Button Controls into Facade Implementation
+
+- [ ] Create `ButtonMovementController implements IMovementController`
+- [ ] Move keyboard/button event listeners into this class
+- [ ] Keep `movePlayerByCells()` function or similar internally
+- [ ] When button pressed, call callback with new coordinates
+- [ ] Game code should call controller methods, not keyboard handlers directly
+
+**Result**: Button-based movement encapsulated in a clean implementation.
+
+---
+
+## Step 4 — Implement Geolocation Movement Controller
+
+- [ ] Create `GeolocationMovementController implements IMovementController`
+- [ ] Request permission from user: `navigator.geolocation.watchPosition()`
+- [ ] Define a "home location" (initial GPS coordinates) mapping to Null Island (0,0)
+- [ ] On each location update:
+  - Calculate distance from home in degrees (lat/lng difference)
+  - Convert to game cells using TILE_DEGREES
+  - Call callback with new game coordinates
+- [ ] Handle permission denied gracefully (fallback to button mode or show error)
+- [ ] Handle geolocation errors and retries
+
+**Result**: Real-world GPS movement working in game.
+
+---
+
+## Step 5 — Add Query String Mode Switching
+
+- [ ] Parse query string to detect `?movement=buttons` or `?movement=geolocation`
+- [ ] Default to `buttons` if not specified
+- [ ] Instantiate appropriate controller based on query string
+- [ ] Initialize only the selected controller
+- [ ] Document in UI which mode is active
+
+**Result**: Player can choose movement mode via URL.
+
+---
+
+## Step 6 — Add "New Game" UI Button
+
+- [ ] Add "New Game" button to control panel (separate from "Reset World")
+- [ ] "New Game" should:
+  - [ ] Clear cellStates completely
+  - [ ] Clear heldToken
+  - [ ] Reset player position to Null Island (0, 0)
+  - [ ] Clear localStorage
+  - [ ] Call `renderVisibleCells()` to redraw
+  - [ ] Show confirmation dialog to prevent accidents
+- [ ] "Reset World" continues to work as before (clears overrides, not position)
+
+**Result**: Player can start completely fresh gameplay.
+
+---
+
+## Step 7 — Testing & Validation
+
+- [ ] Test button mode still works (backward compatibility)
+- [ ] Test geolocation mode:
+  - [ ] Grant permission, move around physically
+  - [ ] Verify character moves in game
+  - [ ] Deny permission, verify fallback or error message
+- [ ] Test localStorage persistence:
+  - [ ] Play, close browser, reopen page
+  - [ ] Verify all state is restored
+- [ ] Test mode switching:
+  - [ ] Load with `?movement=buttons`
+  - [ ] Load with `?movement=geolocation`
+  - [ ] Verify correct mode activates
+- [ ] Test New Game:
+  - [ ] Play, pick up tokens, place tokens
+  - [ ] Click "New Game"
+  - [ ] Confirm dialog appears
+  - [ ] Verify state is cleared, position reset to (0,0)
+  - [ ] Reload page, verify state stays cleared
+
+**Result**: All D3.d features working correctly.
 
 ---

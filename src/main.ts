@@ -53,6 +53,8 @@ const EMOJI_BY_VALUE: Record<number, string> = {
 /* -------------------------
    Persistence keys
    -------------------------*/
+// D3.d: localStorage persistence is fully implemented below
+// Game state (cellStates and heldToken) automatically persists across page reloads
 const STORAGE_CELL_STATES = "wob_cell_states_v1"; // cell state map
 const STORAGE_HAND = "wob_hand_v1";
 
