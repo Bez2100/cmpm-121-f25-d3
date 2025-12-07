@@ -89,6 +89,82 @@ class ButtonMovementController implements IMovementController {
 }
 
 /* -------------------------
+   D3.d: Geolocation Movement Controller Implementation
+   -------------------------*/
+class _GeolocationMovementController implements IMovementController {
+  private moveCallback: ((lat: number, lng: number) => void) | null = null;
+  private watchId: number | null = null;
+  private homeLocation: { lat: number; lng: number } | null = null;
+
+  registerMoveCallback(callback: (lat: number, lng: number) => void): void {
+    this.moveCallback = callback;
+  }
+
+  activate(): void {
+    if (!navigator.geolocation) {
+      flashMessage("Geolocation not supported by this browser.");
+      return;
+    }
+
+    this.watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+
+        // On first location, establish home location at Null Island origin
+        if (!this.homeLocation) {
+          this.homeLocation = { lat: latitude, lng: longitude };
+          flashMessage("Geolocation active. Home location set.");
+        }
+
+        // Calculate delta from home location
+        const deltaLat = latitude - this.homeLocation.lat;
+        const deltaLng = longitude - this.homeLocation.lng;
+
+        // Convert GPS delta to game coordinates
+        // Each TILE_DEGREES represents one cell move
+        const gameLat = ORIGIN.lat + deltaLat;
+        const gameLng = ORIGIN.lng + deltaLng;
+
+        if (this.moveCallback) {
+          this.moveCallback(gameLat, gameLng);
+        }
+      },
+      (error) => {
+        let msg = "Geolocation error: ";
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            msg += "Permission denied.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            msg += "Position unavailable.";
+            break;
+          case error.TIMEOUT:
+            msg += "Request timed out.";
+            break;
+          default:
+            msg += "Unknown error.";
+        }
+        flashMessage(msg);
+        console.warn(msg, error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      },
+    );
+  }
+
+  deactivate(): void {
+    if (this.watchId !== null) {
+      navigator.geolocation.clearWatch(this.watchId);
+      this.watchId = null;
+      this.homeLocation = null;
+    }
+  }
+}
+
+/* -------------------------
    UI: build DOM placeholders
    -------------------------*/
 const controlPanelDiv = document.createElement("div");

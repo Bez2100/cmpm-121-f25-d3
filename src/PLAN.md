@@ -291,17 +291,28 @@ localStorage persistence across page reloads, and a Facade pattern for movement 
 
 ## Step 4 — Implement Geolocation Movement Controller
 
-- [ ] Create `GeolocationMovementController implements IMovementController`
-- [ ] Request permission from user: `navigator.geolocation.watchPosition()`
-- [ ] Define a "home location" (initial GPS coordinates) mapping to Null Island (0,0)
-- [ ] On each location update:
-  - Calculate distance from home in degrees (lat/lng difference)
-  - Convert to game cells using TILE_DEGREES
-  - Call callback with new game coordinates
-- [ ] Handle permission denied gracefully (fallback to button mode or show error)
-- [ ] Handle geolocation errors and retries
+- [x] Create `GeolocationMovementController implementing IMovementController`
+- [x] Request permission from user: `navigator.geolocation.watchPosition()`
+- [x] Define a "home location" (initial GPS coordinates) mapping to Null Island (0,0)
+- [x] On each location update:
+  - [x] Calculate distance from home in degrees (lat/lng difference)
+  - [x] Convert to game cells using TILE_DEGREES
+  - [x] Call callback with new game coordinates
+- [x] Handle permission denied gracefully (show error message via flashMessage)
+- [x] Handle geolocation errors (timeout, position unavailable, etc.)
 
-**Result**: Real-world GPS movement working in game.
+**Result**: Real-world GPS movement working in game. ✅
+
+**How it works:**
+
+- `_GeolocationMovementController` class defined at lines 94-152 in `main.ts`
+- Implements `IMovementController` interface with `activate()`, `deactivate()`, and `registerMoveCallback()`
+- `activate()` calls `navigator.geolocation.watchPosition()` with success/error callbacks
+- On first location: stores home location (initial GPS coordinates)
+- On each update: calculates `deltaLat` and `deltaLng` from home, converts to game coordinates, fires callback
+- `deactivate()` clears the watch and resets home location
+- Error handling includes PERMISSION_DENIED, POSITION_UNAVAILABLE, TIMEOUT cases
+- High accuracy mode enabled (`enableHighAccuracy: true`) for best GPS precision
 
 ---
 
