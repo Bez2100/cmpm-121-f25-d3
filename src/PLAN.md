@@ -100,16 +100,17 @@ globe-spanning, scrollable environment with player movement and dynamic cell loa
 
 ## Step 5 — Memoryless cells beyond view
 
-- [ ] Cells despawn when leaving visible screen
-- [ ] Spawning uses deterministic luck unless overridden
-- [ ] Returning to a previously seen cell respawns it fresh if not overridden
+- [x] Cells despawn when leaving visible screen
+- [x] Spawning uses deterministic luck unless overridden
+- [x] Returning to a previously seen cell respawns it fresh if not overridden
+- [x] **REFACTORED**: Replaced `overrides` Record with `cellStates` Map for better persistence
 
 ---
 
 ## Step 6 — Update interaction radius centered on player
 
-- [ ] Compute player's cell coordinates (pi, pj)
-- [ ] Allow interactions only if:
+- [x] Compute player's cell coordinates (pi, pj)
+- [x] Allow interactions only if:
       abs(i - pi) ≤ INTERACTION_RADIUS_CELLS
       abs(j - pj) ≤ INTERACTION_RADIUS_CELLS
 
@@ -117,30 +118,22 @@ globe-spanning, scrollable environment with player movement and dynamic cell loa
 
 ## Step 7 — Update click handler to use real player position
 
-- [ ] Modify `handleCellClick` to compare against player cell
-- [ ] Preserve existing pickup / place / crafting behaviors
-- [ ] Validate interaction after coordinate change
+- [x] Modify `handleCellClick` to compare against player cell
+- [x] Preserve existing pickup / place / crafting behaviors
+- [x] Validate interaction after coordinate change
 
 ---
 
 ## Step 8 — Update win condition
 
-- [ ] Confirm win triggers when crafting reaches target
-- [ ] Confirm win triggers when held token reaches target
+- [x] Confirm win triggers when crafting reaches target
+- [x] Confirm win triggers when held token reaches target
 
 ---
 
-## Step 9 — Remove classroom-specific UX
+## Step 9 — Final consistency & polish
 
-- [ ] Remove “You (fixed)” tooltip
-- [ ] Remove forced zoom lock (allow zoom)
-- [ ] Remove unused classroom constants
-
----
-
-## Step 10 — Final consistency & polish
-
-- [ ] Verify rendering performance under scrolling
-- [ ] Ensure no orphaned markers remain
-- [ ] Ensure player movement stays synced with rendering
-- [ ] Ensure infinite grid illusion is intact
+- [x] Verify rendering performance under scrolling
+- [x] Ensure no orphaned markers remain
+- [x] Ensure player movement stays synced with rendering
+- [x] Ensure infinite grid illusion is intact

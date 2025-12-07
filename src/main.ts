@@ -53,14 +53,15 @@ const EMOJI_BY_VALUE: Record<number, string> = {
 /* -------------------------
    Persistence keys
    -------------------------*/
-const STORAGE_OVERRIDES = "wob_overrides_v1"; // overrides: removed/placed/combined tokens
+const STORAGE_CELL_STATES = "wob_cell_states_v1"; // cell state map
 const STORAGE_HAND = "wob_hand_v1";
 
 /* -------------------------
    In-memory state
    -------------------------*/
-// overrides keyed by "i,j" where i,j are integer cell coords relative to classroom origin
-const overrides: Record<string, number | null> = loadOverrides();
+// cellStates: Map where key is "i,j" and value is the token currently in that cell (or null if empty)
+// This persists cell state across the entire session—cells remember their state even when off-screen
+const cellStates: Map<string, number | null> = loadCellStates();
 let heldToken: number | null = loadHeldToken();
 
 // Map of rendered objects to allow updates
@@ -161,17 +162,17 @@ function keyFor(i: number, j: number) {
    -------------------------*/
 function initialTokenForCell(i: number, j: number): number | null {
   const k = keyFor(i, j);
-  // If user override exists, respect it (override may be null for intentionally emptied)
-  if (k in overrides) {
-    return overrides[k] ?? null;
+
+  // If we've visited this cell before in this session, return its stored state
+  if (cellStates.has(k)) {
+    return cellStates.get(k) ?? null;
   }
-  // else use luck to compute deterministic spawn
+
+  // Otherwise, compute deterministically using luck and store it
   const p = luck(`cell-${i}-${j}-spawn`);
-  if (p < SPAWN_PROBABILITY) {
-    // For D3.a tokens start at value 1
-    return 1;
-  }
-  return null;
+  const token = p < SPAWN_PROBABILITY ? 1 : null;
+  cellStates.set(k, token);
+  return token;
 }
 
 /* -------------------------
@@ -300,13 +301,13 @@ function handleCellClick(i: number, j: number) {
     return;
   }
 
-  const current = initialTokenForCell(i, j); // reads overrides first
+  const current = initialTokenForCell(i, j); // reads cellStates
   // Case A: pick up (have nothing in hand, cell has token)
   if (heldToken === null && current != null) {
     // pick it up
     heldToken = current;
-    overrides[key] = null; // remove from cell (store override)
-    persistOverrides();
+    cellStates.set(key, null); // remove from cell
+    persistCellStates();
     persistHeld();
     updateInventoryUI();
     renderCell(i, j);
@@ -318,9 +319,9 @@ function handleCellClick(i: number, j: number) {
 
   // Case B: place into empty cell
   if (heldToken != null && current == null) {
-    overrides[key] = heldToken;
+    cellStates.set(key, heldToken);
     heldToken = null;
-    persistOverrides();
+    persistCellStates();
     persistHeld();
     updateInventoryUI();
     renderCell(i, j);
@@ -331,9 +332,9 @@ function handleCellClick(i: number, j: number) {
   // Case C: crafting (held token equal to cell token)
   if (heldToken != null && current === heldToken) {
     const newVal = heldToken * 2;
-    overrides[key] = newVal;
+    cellStates.set(key, newVal);
     heldToken = null;
-    persistOverrides();
+    persistCellStates();
     persistHeld();
     updateInventoryUI();
     renderCell(i, j);
@@ -405,21 +406,27 @@ function showWin(value: number) {
 /* -------------------------
    Persistence helpers
    -------------------------*/
-function persistOverrides() {
+function persistCellStates() {
   try {
-    localStorage.setItem(STORAGE_OVERRIDES, JSON.stringify(overrides));
+    // Convert Map to a serializable object
+    const obj: Record<string, number | null> = {};
+    cellStates.forEach((value, key) => {
+      obj[key] = value;
+    });
+    localStorage.setItem(STORAGE_CELL_STATES, JSON.stringify(obj));
   } catch (e) {
-    console.warn("Could not persist overrides:", e);
+    console.warn("Could not persist cell states:", e);
   }
 }
 
-function loadOverrides(): Record<string, number | null> {
+function loadCellStates(): Map<string, number | null> {
   try {
-    const raw = localStorage.getItem(STORAGE_OVERRIDES);
-    if (!raw) return {};
-    return JSON.parse(raw);
+    const raw = localStorage.getItem(STORAGE_CELL_STATES);
+    if (!raw) return new Map();
+    const obj = JSON.parse(raw) as Record<string, number | null>;
+    return new Map(Object.entries(obj));
   } catch {
-    return {};
+    return new Map();
   }
 }
 
@@ -445,8 +452,8 @@ function loadHeldToken(): number | null {
    -------------------------*/
 function resetWorld() {
   if (!confirm("Reset saved world state?")) return;
-  for (const k in overrides) delete overrides[k];
-  persistOverrides();
+  cellStates.clear();
+  persistCellStates();
   heldToken = null;
   persistHeld();
   updateInventoryUI();
