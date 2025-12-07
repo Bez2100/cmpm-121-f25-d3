@@ -22,7 +22,70 @@ interface IMovementController {
 
   // Register callback to be called when player moves
   // Callback receives new player coordinates (lat, lng)
-  onPlayerMove: (callback: (lat: number, lng: number) => void) => void;
+  registerMoveCallback(callback: (lat: number, lng: number) => void): void;
+}
+
+/* -------------------------
+   D3.d: Button Movement Controller Implementation
+   -------------------------*/
+class ButtonMovementController implements IMovementController {
+  private moveCallback: ((lat: number, lng: number) => void) | null = null;
+  private keydownHandler: ((ev: KeyboardEvent) => void) | null = null;
+
+  registerMoveCallback(callback: (lat: number, lng: number) => void): void {
+    this.moveCallback = callback;
+  }
+
+  activate(): void {
+    this.keydownHandler = (ev: KeyboardEvent) => {
+      const key = ev.key;
+      let handled = true;
+      let di = 0;
+      let dj = 0;
+
+      switch (key) {
+        case "ArrowUp":
+        case "w":
+        case "W":
+          di = 1;
+          break;
+        case "ArrowDown":
+        case "s":
+        case "S":
+          di = -1;
+          break;
+        case "ArrowLeft":
+        case "a":
+        case "A":
+          dj = -1;
+          break;
+        case "ArrowRight":
+        case "d":
+        case "D":
+          dj = 1;
+          break;
+        default:
+          handled = false;
+      }
+
+      if (handled && this.moveCallback) {
+        // Calculate new position based on cell movement
+        const newLat = playerLatLng.lat + di * TILE_DEGREES;
+        const newLng = playerLatLng.lng + dj * TILE_DEGREES;
+        this.moveCallback(newLat, newLng);
+        ev.preventDefault();
+      }
+    };
+
+    globalThis.addEventListener("keydown", this.keydownHandler);
+  }
+
+  deactivate(): void {
+    if (this.keydownHandler) {
+      globalThis.removeEventListener("keydown", this.keydownHandler);
+      this.keydownHandler = null;
+    }
+  }
 }
 
 /* -------------------------
@@ -509,12 +572,15 @@ map.on("click", (e: L.LeafletMouseEvent) => {
   }
 });
 
-// Movement helpers: move by cell offsets (di,dj)
-function movePlayerByCells(di: number, dj: number) {
-  playerLatLng = L.latLng(
-    playerLatLng.lat + di * TILE_DEGREES,
-    playerLatLng.lng + dj * TILE_DEGREES,
-  );
+/* -------------------------
+   End of file
+   -------------------------*/
+// Create and activate the movement controller (currently button-based)
+const movementController = new ButtonMovementController();
+
+// Register callback to move player when controller fires movement event
+movementController.registerMoveCallback((lat: number, lng: number) => {
+  playerLatLng = L.latLng(lat, lng);
   // Pan the map so the viewport recenters on the player's logical position
   try {
     map.panTo(playerLatLng);
@@ -522,38 +588,10 @@ function movePlayerByCells(di: number, dj: number) {
     // ignore if panTo not available in some contexts
   }
   updateStatusUI();
-}
-
-// Keyboard controls: arrows + WASD
-globalThis.addEventListener("keydown", (ev) => {
-  const key = ev.key;
-  let handled = true;
-  switch (key) {
-    case "ArrowUp":
-    case "w":
-    case "W":
-      movePlayerByCells(1, 0);
-      break;
-    case "ArrowDown":
-    case "s":
-    case "S":
-      movePlayerByCells(-1, 0);
-      break;
-    case "ArrowLeft":
-    case "a":
-    case "A":
-      movePlayerByCells(0, -1);
-      break;
-    case "ArrowRight":
-    case "d":
-    case "D":
-      movePlayerByCells(0, 1);
-      break;
-    default:
-      handled = false;
-  }
-  if (handled) ev.preventDefault();
 });
+
+// Activate the movement controller (starts listening for input)
+movementController.activate();
 
 /* -------------------------
    End of file

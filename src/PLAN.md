@@ -271,13 +271,21 @@ localStorage persistence across page reloads, and a Facade pattern for movement 
 
 ## Step 3 — Refactor Button Controls into Facade Implementation
 
-- [ ] Create `ButtonMovementController implements IMovementController`
-- [ ] Move keyboard/button event listeners into this class
-- [ ] Keep `movePlayerByCells()` function or similar internally
-- [ ] When button pressed, call callback with new coordinates
-- [ ] Game code should call controller methods, not keyboard handlers directly
+- [x] Create `ButtonMovementController implements IMovementController`
+- [x] Move keyboard/button event listeners into this class
+- [x] Keep `movePlayerByCells()` function or similar internally
+- [x] When button pressed, call callback with new coordinates
+- [x] Game code should call controller methods, not keyboard handlers directly
 
-**Result**: Button-based movement encapsulated in a clean implementation.
+**Result**: Button-based movement encapsulated in a clean implementation. ✅
+
+**How it works:**
+
+- `ButtonMovementController` class defined at lines 31-89 in `main.ts`
+- Implements `IMovementController` interface with `activate()`, `deactivate()`, and `registerMoveCallback()`
+- Constructor initializes keyboard listener internally
+- Game code creates instance, registers callback, and calls `activate()` (lines 593-610)
+- Old `movePlayerByCells()` function removed — logic moved into controller
 
 ---
 
