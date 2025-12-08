@@ -1,9 +1,17 @@
+/* Ensure the map container is visible and triggers tile requests */
+#map {
+  width: 100vw;
+  height: 80vh;
+  min-height: 400px;
+  display: block;
+}
 /* Control and status panels */
 #controlPanel,
 #statusPanel {
   padding: 1rem;
   font-size: 1.2rem;
   font-family: sans-serif;
+  min-height: 2rem;
 }
 
 /* Map container */

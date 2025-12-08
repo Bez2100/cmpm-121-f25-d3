@@ -371,24 +371,24 @@ Usage Examples:
 
 ## Step 7 — Testing & Validation
 
-- [ ] Test button mode still works (backward compatibility)
-- [ ] Test geolocation mode:
-  - [ ] Grant permission, move around physically
-  - [ ] Verify character moves in game
-  - [ ] Deny permission, verify fallback or error message
-- [ ] Test localStorage persistence:
-  - [ ] Play, close browser, reopen page
-  - [ ] Verify all state is restored
-- [ ] Test mode switching:
-  - [ ] Load with `?movement=buttons`
-  - [ ] Load with `?movement=geolocation`
-  - [ ] Verify correct mode activates
-- [ ] Test New Game:
-  - [ ] Play, pick up tokens, place tokens
-  - [ ] Click "New Game"
-  - [ ] Confirm dialog appears
-  - [ ] Verify state is cleared, position reset to (0,0)
-  - [ ] Reload page, verify state stays cleared
+- [x] Test button mode still works (backward compatibility)
+- [x] Test geolocation mode:
+  - [x] Grant permission, move around physically
+  - [x] Verify character moves in game
+  - [x] Deny permission, verify fallback or error message
+- [x] Test localStorage persistence:
+  - [x] Play, close browser, reopen page
+  - [x] Verify all state is restored
+- [x] Test mode switching:
+  - [x] Load with `?movement=buttons`
+  - [x] Load with `?movement=geolocation`
+  - [x] Verify correct mode activates
+- [x] Test New Game:
+  - [x] Play, pick up tokens, place tokens
+  - [x] Click "New Game"
+  - [x] Confirm dialog appears
+  - [x] Verify state is cleared, position reset to (0,0)
+  - [x] Reload page, verify state stays cleared
 
 **Result**: All D3.d features working correctly.
 

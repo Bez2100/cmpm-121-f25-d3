@@ -109,8 +109,11 @@ class _GeolocationMovementController implements IMovementController {
     this.watchId = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
+        // Keep the map centered on the real GPS location so streets/buildings show and follow the player
+        map.panTo(L.latLng(latitude, longitude));
+        map.setZoom(GAMEPLAY_ZOOM_LEVEL); // keep zoom consistent
 
-        // On first location, establish home location at Null Island origin
+        // On first location, establish home location for grid-relative movement
         if (!this.homeLocation) {
           this.homeLocation = { lat: latitude, lng: longitude };
           flashMessage("Geolocation active. Home location set.");
@@ -241,11 +244,39 @@ const map = L.map(mapDiv, {
   touchZoom: true,
 });
 
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: GAMEPLAY_ZOOM_LEVEL,
-  attribution:
-    '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-}).addTo(map);
+const tileLayer = L.tileLayer(
+  "https://tile.openstreetmap.de/{z}/{x}/{y}.png",
+  {
+    maxZoom: GAMEPLAY_ZOOM_LEVEL,
+    attribution:
+      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    crossOrigin: true,
+  },
+);
+
+tileLayer.on("tileloadstart", (e) => {
+  console.log("Tile load start:", e.coords);
+});
+
+tileLayer.on("tileload", (e) => {
+  console.log("Tile loaded successfully:", e.coords);
+});
+
+tileLayer.on("tileerror", (e) => {
+  console.error("Tile load ERROR:", e.coords, e.error);
+});
+
+tileLayer.on("loading", () => {
+  console.log("Layer loading started");
+});
+
+tileLayer.on("load", () => {
+  console.log("Layer fully loaded");
+});
+
+console.log("Adding tile layer to map");
+tileLayer.addTo(map);
+console.log("Tile layer added");
 
 // Player overlay (fixed to viewport center) — visually separates player from map panning
 const playerOverlay = document.createElement("div");
@@ -279,11 +310,16 @@ makeControlUI();
 
 // Status panel: show player coords & brief controls
 function updateStatusUI() {
-  statusPanelDiv.innerHTML = `Player: <strong>${playerLatLng.lat.toFixed(5)}, ${
-    playerLatLng.lng.toFixed(5)
-  }</strong> — Move with arrow keys / WASD. Shift+click map to teleport.`;
+  const modeText = movementMode === "geolocation"
+    ? "GPS/Geolocation"
+    : "Keyboard";
+  statusPanelDiv.innerHTML =
+    `<strong>Mode:</strong> ${modeText} | Player: <strong>${
+      playerLatLng.lat.toFixed(5)
+    }, ${
+      playerLatLng.lng.toFixed(5)
+    }</strong> — Move with arrow keys / WASD. Shift+click map to teleport.`;
 }
-updateStatusUI();
 
 /* -------------------------
    Coordinate helpers
@@ -707,21 +743,6 @@ const movementController: IMovementController = movementMode === "geolocation"
   ? new _GeolocationMovementController()
   : new ButtonMovementController();
 
-// Update status UI to show which mode is active
-function updateMovementModeUI() {
-  const modeText = movementMode === "geolocation"
-    ? "GPS/Geolocation"
-    : "Keyboard";
-  const statusEl = document.getElementById("statusPanel");
-  if (statusEl) {
-    const modeSpan = document.createElement("span");
-    modeSpan.style.marginRight = "12px";
-    modeSpan.innerHTML = `<strong>Mode:</strong> ${modeText}`;
-    // Insert at beginning of status panel
-    statusEl.insertAdjacentElement("afterbegin", modeSpan);
-  }
-}
-
 // Register callback to move player when controller fires movement event
 movementController.registerMoveCallback((lat: number, lng: number) => {
   playerLatLng = L.latLng(lat, lng);
@@ -737,8 +758,8 @@ movementController.registerMoveCallback((lat: number, lng: number) => {
 // Activate the movement controller (starts listening for input)
 movementController.activate();
 
-// Show which mode is active
-updateMovementModeUI();
+// Show the updated status with mode
+updateStatusUI();
 
 /* -------------------------
    End of file
