@@ -261,12 +261,17 @@ function makeControlUI() {
     <div style="display:flex; gap:12px; align-items:center; padding:8px;">
       <div id="inventory" style="min-width:180px;">Inventory: ...</div>
       <button id="resetBtn">Reset World</button>
+      <button id="newGameBtn">New Game</button>
       <div id="msg" style="margin-left:8px;color:#222;"></div>
     </div>
   `;
   (document.getElementById("resetBtn") as HTMLButtonElement).addEventListener(
     "click",
     resetWorld,
+  );
+  (document.getElementById("newGameBtn") as HTMLButtonElement).addEventListener(
+    "click",
+    newGame,
   );
   updateInventoryUI();
 }
@@ -607,7 +612,7 @@ function loadHeldToken(): number | null {
 }
 
 /* -------------------------
-   Reset / debug
+   Reset / New Game
    -------------------------*/
 function resetWorld() {
   if (!confirm("Reset saved world state?")) return;
@@ -619,6 +624,40 @@ function resetWorld() {
   // re-render everything
   renderVisibleCells();
   flashMessage("World reset.");
+}
+
+function newGame() {
+  if (
+    !confirm(
+      "Start a new game? This will clear all progress and reset your position.",
+    )
+  ) {
+    return;
+  }
+
+  // Clear all game state
+  cellStates.clear();
+  persistCellStates();
+  heldToken = null;
+  persistHeld();
+  playerLatLng = ORIGIN.clone();
+
+  // Clear localStorage entirely
+  localStorage.clear();
+
+  // Update UI
+  updateInventoryUI();
+  updateStatusUI();
+
+  // Re-render and center on origin
+  renderVisibleCells();
+  try {
+    map.panTo(playerLatLng);
+  } catch {
+    // ignore
+  }
+
+  flashMessage("New game started!");
 }
 
 /* -------------------------

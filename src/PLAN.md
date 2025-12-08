@@ -343,17 +343,29 @@ Usage Examples:
 
 ## Step 6 — Add "New Game" UI Button
 
-- [ ] Add "New Game" button to control panel (separate from "Reset World")
-- [ ] "New Game" should:
-  - [ ] Clear cellStates completely
-  - [ ] Clear heldToken
-  - [ ] Reset player position to Null Island (0, 0)
-  - [ ] Clear localStorage
-  - [ ] Call `renderVisibleCells()` to redraw
-  - [ ] Show confirmation dialog to prevent accidents
-- [ ] "Reset World" continues to work as before (clears overrides, not position)
+- [x] Add "New Game" button to control panel (separate from "Reset World")
+- [x] "New Game" should:
+  - [x] Clear cellStates completely
+  - [x] Clear heldToken
+  - [x] Reset player position to Null Island (0, 0)
+  - [x] Clear localStorage
+  - [x] Call `renderVisibleCells()` to redraw
+  - [x] Show confirmation dialog to prevent accidents
+- [x] "Reset World" continues to work as before (clears cells only, keeps position)
 
-**Result**: Player can start completely fresh gameplay.
+**Result**: Player can start completely fresh gameplay. ✅
+
+**How it works:**
+
+- `newGame()` function (lines 609-641 in `main.ts`) handles complete game reset
+- Control panel now has two buttons: "Reset World" and "New Game" (lines 260-261)
+- Shows confirmation dialog: "Start a new game? This will clear all progress and reset your position."
+- Clears cellStates Map and localStorage completely
+- Resets playerLatLng to ORIGIN (0,0)
+- Rerenders visible cells and pans map to origin
+- Difference from "Reset World":
+  - Reset World: Only clears cellStates, keeps player position and inventory
+  - New Game: Clears cellStates, localStorage, inventory, AND resets position to (0,0)
 
 ---
 
